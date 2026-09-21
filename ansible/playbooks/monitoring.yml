@@ -1,0 +1,8 @@
+---
+- name: Deploy Prometheus, Grafana, and Alertmanager
+  hosts: kube_control_plane[0]
+  become: true
+  roles:
+    - role: monitoring
+      tags:
+        - monitoring

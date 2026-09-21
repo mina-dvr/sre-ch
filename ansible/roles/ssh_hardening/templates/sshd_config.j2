@@ -1,0 +1,13 @@
+# Managed by Ansible. sshd uses the first value it reads, so the policy
+# below always wins over the distro drop-ins included at the bottom.
+PermitRootLogin yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+PermitEmptyPasswords no
+X11Forwarding no
+MaxAuthTries 3
+LoginGraceTime 30
+UsePAM yes
+Subsystem sftp /usr/lib/openssh/sftp-server
+Include /etc/ssh/sshd_config.d/*.conf

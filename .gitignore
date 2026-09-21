@@ -1,0 +1,45 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.secret.tfvars
+*.tfvars.secret
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Ansible
+.venv/
+__pycache__/
+ansible/inventory/production/artifacts/
+ansible/inventory/production/credentials/
+ansible/collections/ansible_collections/
+*.retry
+.vault_pass
+.vault_pass.txt
+*.vault
+*.generated.yml
+inventory/.generated/
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_ed25519
+*credentials*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,20 @@
+# Applied as PrometheusRule after the Helm release.
+# Keep namespace monitoring and label release: kube-prometheus-stack.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: mina-custom
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: mina.custom
+      rules:
+        - alert: ClusterHasUnschedulablePod
+          expr: kube_pod_status_unschedulable == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} cannot be scheduled"

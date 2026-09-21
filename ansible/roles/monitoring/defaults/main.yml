@@ -1,0 +1,23 @@
+---
+monitoring_namespace: monitoring
+monitoring_release_name: kube-prometheus-stack
+monitoring_chart_repo: https://prometheus-community.github.io/helm-charts
+monitoring_chart_name: prometheus-community/kube-prometheus-stack
+monitoring_chart_version: "75.8.0"
+monitoring_storage_class: local-path
+monitoring_prometheus_retention: 7d
+monitoring_prometheus_storage: 8Gi
+monitoring_alertmanager_storage: 2Gi
+monitoring_grafana_storage: 1Gi
+monitoring_grafana_host: ""
+monitoring_prometheus_host: ""
+monitoring_alertmanager_host: ""
+monitoring_ingress_class: nginx
+monitoring_ingress_enabled: false
+monitoring_ingress_tls: false
+monitoring_public_scheme: https
+monitoring_grafana_admin_user: admin
+grafana_password: ""
+telegram_bot_token: ""
+telegram_chat_id: ""
+monitoring_kubeconfig: /etc/kubernetes/admin.conf

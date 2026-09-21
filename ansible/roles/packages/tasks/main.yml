@@ -1,0 +1,39 @@
+---
+- name: Disable automatic package index updates and unattended upgrades
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Update package indexes and installed packages
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: "{{ packages_upgrade }}"
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ packages_base }}"
+    state: present
+
+- name: Remove unwanted packages
+  ansible.builtin.apt:
+    name: "{{ packages_remove }}"
+    state: absent
+    purge: true
+
+- name: Remove packages that are no longer needed
+  ansible.builtin.apt:
+    autoremove: true
+
+- name: Check whether reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: Reboot the node if required
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when: reboot_required.stat.exists

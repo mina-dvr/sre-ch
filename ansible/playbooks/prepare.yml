@@ -1,0 +1,21 @@
+---
+- name: Prepare Ubuntu nodes
+  hosts: k8s_cluster
+  become: true
+
+  roles:
+    - role: user_management
+      tags:
+        - users
+
+    - role: packages
+      tags:
+        - packages
+
+    - role: ntp
+      tags:
+        - ntp
+
+    - role: ssh_hardening
+      tags:
+        - ssh

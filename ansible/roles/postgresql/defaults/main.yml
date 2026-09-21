@@ -1,0 +1,31 @@
+---
+postgresql_operator_namespace: cnpg-system
+postgresql_operator_release: cnpg
+postgresql_operator_chart_repo: https://cloudnative-pg.github.io/charts
+postgresql_operator_chart_name: cnpg/cloudnative-pg
+postgresql_operator_chart_version: "0.29.0"
+
+postgresql_cluster_release: mina-pg
+postgresql_cluster_chart_name: cnpg/cluster
+postgresql_cluster_chart_version: "0.8.1"
+postgresql_namespace: postgres
+postgresql_cluster_name: mina-pg
+postgresql_major: "16"
+postgresql_instances: 3
+postgresql_storage: 5Gi
+postgresql_storage_class: local-path
+postgresql_database: mina
+postgresql_app_user: mina
+postgresql_monitoring: true
+postgresql_kubeconfig: /etc/kubernetes/admin.conf
+postgres_superuser_password: ""
+postgres_app_password: ""
+
+# Cluster chart values keep backups disabled. Vault has the S3 keys if this is turned on later.
+postgresql_backup_enabled: false
+postgresql_backup_endpoint: "https://s3.ir-tbz-sh1.arvanstorage.ir"   # Arvan S3 API endpoint, not the per-bucket URL
+postgresql_backup_bucket: "mina-postgres"            # Arvan bucket name
+postgresql_backup_retention: 30d
+postgresql_backup_schedule: "0 30 2 * * *"   # daily 02:30 (cron with seconds)
+s3_backup_access_key: ""                # set in vault.yml (encrypted)
+s3_backup_secret_key: ""                # set in vault.yml (encrypted)

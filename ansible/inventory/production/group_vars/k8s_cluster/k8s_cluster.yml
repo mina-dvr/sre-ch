@@ -1,0 +1,38 @@
+---
+container_manager: docker
+kube_network_plugin: calico
+# Pull images on k1 and copy them to the other nodes. registry.k8s.io
+# often returns 403 on some Arvan public IPs; more retries will not help.
+download_run_once: true
+# All three control-plane nodes also run application workloads.
+node_taints: []
+# Chrony is managed by our ntp role.
+ntp_enabled: false
+
+# Persistent volumes for Prometheus/Grafana/Alertmanager.
+helm_enabled: true
+local_path_provisioner_enabled: true
+# No cloud LoadBalancer on Arvan; bind 80/443 on the node that runs ingress.
+# TLS stays on the CDN; origin is HTTP.
+ingress_nginx_enabled: true
+ingress_nginx_host_network: true
+ingress_nginx_service_type: NodePort
+ingress_nginx_configmap:
+  use-forwarded-headers: "true"
+  compute-full-forwarded-for: "true"
+  ssl-redirect: "false"
+
+# CDN terminates TLS. Point origin HTTP to a node public IP on port 80.
+monitoring_grafana_host: g.mina-dvr.ir
+monitoring_prometheus_host: p.mina-dvr.ir
+monitoring_alertmanager_host: a.mina-dvr.ir
+monitoring_ingress_enabled: true
+monitoring_ingress_tls: false
+monitoring_public_scheme: https
+
+# CloudNativePG: three instances, local-path, ClusterIP only.
+postgresql_instances: 3
+postgresql_storage: 5Gi
+postgresql_database: mina
+postgresql_app_user: mina
+postgresql_monitoring: true

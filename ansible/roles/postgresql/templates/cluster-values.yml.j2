@@ -1,0 +1,36 @@
+---
+fullnameOverride: {{ postgresql_cluster_name }}
+type: postgresql
+mode: standalone
+version:
+  postgresql: "{{ postgresql_major }}"
+
+cluster:
+  instances: {{ postgresql_instances }}
+  storage:
+    size: {{ postgresql_storage }}
+    storageClass: {{ postgresql_storage_class }}
+  enableSuperuserAccess: true
+  superuserSecret: {{ postgresql_cluster_name }}-superuser
+  initdb:
+    database: {{ postgresql_database }}
+    owner: {{ postgresql_app_user }}
+    secret:
+      name: {{ postgresql_cluster_name }}-app
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: required
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  monitoring:
+    enabled: {{ postgresql_monitoring | bool | ternary('true', 'false') }}
+    podMonitor:
+      enabled: {{ postgresql_monitoring | bool | ternary('true', 'false') }}
+
+backups:
+  enabled: false

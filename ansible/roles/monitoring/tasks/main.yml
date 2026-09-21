@@ -1,0 +1,51 @@
+---
+- name: Render kube-prometheus-stack values
+  ansible.builtin.template:
+    src: kube-prometheus-stack-values.yml.j2
+    dest: /etc/kubernetes/kube-prometheus-stack-values.yml
+    owner: root
+    group: root
+    mode: '0600'
+  no_log: true
+
+- name: Add the prometheus-community Helm repository
+  kubernetes.core.helm_repository:
+    name: prometheus-community
+    repo_url: "{{ monitoring_chart_repo }}"
+    force: true
+    binary_path: /usr/local/bin/helm
+
+- name: Install kube-prometheus-stack
+  kubernetes.core.helm:
+    name: "{{ monitoring_release_name }}"
+    chart_ref: "{{ monitoring_chart_name }}"
+    chart_version: "{{ monitoring_chart_version }}"
+    release_namespace: "{{ monitoring_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ monitoring_kubeconfig }}"
+    binary_path: /usr/local/bin/helm
+    values_files:
+      - /etc/kubernetes/kube-prometheus-stack-values.yml
+    wait: true
+    wait_timeout: 900s
+    update_repo_cache: true
+
+- name: Wait for the PrometheusRule CRD
+  kubernetes.core.k8s_info:
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: prometheusrules.monitoring.coreos.com
+    kubeconfig: "{{ monitoring_kubeconfig }}"
+  register: monitoring_rule_crd
+  until: monitoring_rule_crd is succeeded and monitoring_rule_crd.get('resources', []) | length > 0
+  retries: 24
+  delay: 5
+
+- name: Apply extra Prometheus rules
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ monitoring_kubeconfig }}"
+    definition: "{{ lookup('file', item) }}"
+  loop: "{{ lookup('fileglob', role_path ~ '/files/alerts/*.yml', wantlist=True) | sort }}"
+  loop_control:
+    label: "{{ item | basename }}"

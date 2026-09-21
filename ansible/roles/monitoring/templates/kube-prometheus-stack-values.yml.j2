@@ -1,0 +1,161 @@
+---
+crds:
+  enabled: true
+
+defaultRules:
+  create: true
+
+kubeEtcd:
+  enabled: false
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: telegram
+      group_by:
+        - alertname
+        - namespace
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: 'null'
+      - name: telegram
+        telegram_configs:
+          - api_url: https://api.telegram.org
+            bot_token: {{ telegram_bot_token | string | trim | to_json }}
+            chat_id: {{ telegram_chat_id | string | trim | int }}
+            send_resolved: true
+      - name: drop
+  ingress:
+    enabled: {{ monitoring_ingress_enabled | bool | ternary('true', 'false') }}
+    ingressClassName: {{ monitoring_ingress_class }}
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+{% if monitoring_ingress_enabled | bool %}
+    hosts:
+      - {{ monitoring_alertmanager_host }}
+{% endif %}
+  alertmanagerSpec:
+    replicas: 1
+    retention: 120h
+{% if monitoring_ingress_enabled | bool %}
+    externalUrl: {{ monitoring_public_scheme }}://{{ monitoring_alertmanager_host }}
+{% endif %}
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: {{ monitoring_storage_class }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ monitoring_alertmanager_storage }}
+
+grafana:
+  enabled: true
+  adminUser: {{ monitoring_grafana_admin_user }}
+  adminPassword: {{ grafana_password | trim | to_json }}
+  defaultDashboardsEnabled: true
+  persistence:
+    enabled: true
+    storageClassName: {{ monitoring_storage_class }}
+    size: {{ monitoring_grafana_storage }}
+{% if monitoring_ingress_enabled | bool %}
+  grafana.ini:
+    server:
+      domain: {{ monitoring_grafana_host }}
+      root_url: {{ monitoring_public_scheme }}://{{ monitoring_grafana_host }}
+      serve_from_sub_path: false
+{% endif %}
+  ingress:
+    enabled: {{ monitoring_ingress_enabled | bool | ternary('true', 'false') }}
+    ingressClassName: {{ monitoring_ingress_class }}
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+{% if monitoring_ingress_enabled | bool %}
+    hosts:
+      - {{ monitoring_grafana_host }}
+{% endif %}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+prometheus:
+  enabled: true
+  ingress:
+    enabled: {{ monitoring_ingress_enabled | bool | ternary('true', 'false') }}
+    ingressClassName: {{ monitoring_ingress_class }}
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+{% if monitoring_ingress_enabled | bool %}
+    hosts:
+      - {{ monitoring_prometheus_host }}
+{% endif %}
+  prometheusSpec:
+    replicas: 1
+    retention: {{ monitoring_prometheus_retention }}
+    scrapeInterval: 30s
+{% if monitoring_ingress_enabled | bool %}
+    externalUrl: {{ monitoring_public_scheme }}://{{ monitoring_prometheus_host }}
+{% endif %}
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        memory: 1536Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: {{ monitoring_storage_class }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ monitoring_prometheus_storage }}

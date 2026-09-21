@@ -1,0 +1,33 @@
+---
+- name: Create the defined groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ user_management_groups }}"
+
+- name: Create the defined users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups: "{{ item.groups | default(omit) }}"
+    append: true
+    state: "{{ item.state | default('present') }}"
+    create_home: true
+    shell: "{{ item.shell | default('/bin/bash') }}"
+  loop: "{{ user_management_users }}"
+
+- name: Copy the public key of each user
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    key: "{{ item.ssh_key }}"
+    state: present
+  loop: "{{ user_management_users }}"
+  when: item.ssh_key is defined
+
+- name: Configure passwordless sudo for the sudo group
+  ansible.builtin.template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/{{ user_management_sudo_group }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: /usr/sbin/visudo -cf %s

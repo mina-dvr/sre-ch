@@ -1,0 +1,8 @@
+---
+- name: Deploy PostgreSQL with CloudNativePG
+  hosts: kube_control_plane[0]
+  become: true
+  roles:
+    - role: postgresql
+      tags:
+        - postgresql
