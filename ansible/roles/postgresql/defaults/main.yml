@@ -22,7 +22,7 @@ postgres_superuser_password: ""
 postgres_app_password: ""
 
 # Cluster chart values keep backups disabled. Vault has the S3 keys if this is turned on later.
-postgresql_backup_enabled: false
+postgresql_backup_enabled: true
 postgresql_backup_endpoint: "https://s3.ir-tbz-sh1.arvanstorage.ir"   # Arvan S3 API endpoint, not the per-bucket URL
 postgresql_backup_bucket: "mina-postgres"            # Arvan bucket name
 postgresql_backup_retention: 30d
